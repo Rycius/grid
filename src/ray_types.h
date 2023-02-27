@@ -6,9 +6,6 @@
 #include "raylib.h"
 #include "raymath.h"
 
-#define STB_DS_IMPLEMENTATION
-#include "stb_ds.h"
-
 
 #define int8   int8_t
 #define uint8  uint8_t
@@ -35,27 +32,27 @@
 
 inline v2 Vec2()
 {
-    return (v2){0.0f, 0.0f};
+    return {0.0f, 0.0f};
 }
 
 inline v2 Vec2(float x, float y)
 {
-    return (v2){x, y};
+    return {x, y};
 }
 
 inline v3 Vec3(float x, float y, float z)
 {
-    return (v3){x, y, z};
+    return {x, y, z};
 }
 
 inline v4 Vec4(float x, float y, float z, float w)
 {
-    return (v4){x, y, z, w};
+    return {x, y, z, w};
 }
 
-inline Rectangle Rec(int x, int y, int width, int height)
+inline Rectangle Rec(float x, float y, float width, float height)
 {
-    return (Rectangle){x, y, width, height};
+    return {x, y, width, height};
 }
 
 inline int Clamp(int value, int min, int max)
