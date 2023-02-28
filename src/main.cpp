@@ -100,7 +100,6 @@ int main()
         {.atlas = &roadAtlas, .src = Rec(64, 0, 32, 32)}
     };
 
-    int32 buildItemsCount = 3;
     int32 buildItemID = 0;
     float buildItemRotation = 0.0f;
     
@@ -168,7 +167,7 @@ int main()
             tiles[tilesIndex].rec = Rec(ScreenToGridPos(GetMousePosition(), gridRes, camera), gridRes, gridRes);
             tiles[tilesIndex].rec.x += gridRes/2.0f;
             tiles[tilesIndex].rec.y += gridRes/2.0f;
-            tiles[tilesIndex].item = buildItems[abs((buildItemID)%buildItemsCount)];
+            tiles[tilesIndex].item = buildItems[abs((buildItemID)%(int32)ArrayCount(buildItems))];
             tiles[tilesIndex].item.rotation = buildItemRotation;
             tilesIndex++;
         }
@@ -187,8 +186,8 @@ int main()
         destRec.x += gridRes/2.0f;
         destRec.y += gridRes/2.0f;
 
-        DrawTexturePro(buildItems[abs((buildItemID)%buildItemsCount)].atlas->texture, 
-                        buildItems[abs((buildItemID)%buildItemsCount)].src,
+        DrawTexturePro(buildItems[abs((buildItemID)%(int32)ArrayCount(buildItems))].atlas->texture, 
+                        buildItems[abs((buildItemID)%(int32)ArrayCount(buildItems))].src,
                         destRec,
                         Vec2(gridRes/2.0f, gridRes/2.0f),
                         buildItemRotation,
