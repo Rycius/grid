@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 #define CAMERA_MOVE_SPEED 400.0f
-#define CAMERA_ZOOM_SPEED 5.0f
+#define CAMERA_ZOOM_SPEED 10.0f
 
 #define TEXTURE_SIZE 32
 
@@ -69,7 +69,7 @@ int main()
     
     //--------------------------------------------------------------------------------------
     
-    float gridRes = 50.0f; 
+    float gridRes = 100.0f; 
     
     
     Image cellImg = GenImageColor(gridRes, gridRes, {136, 164, 124, 255});
@@ -141,7 +141,7 @@ int main()
         }
         else if(GetMouseWheelMove() < 0.0f && IsKeyDown(KEY_LEFT_CONTROL))
         {
-            camera.zoom = Clamp(camera.zoom-CAMERA_ZOOM_SPEED*dt, 0.5f, camera.zoom);
+            camera.zoom = Clamp(camera.zoom-CAMERA_ZOOM_SPEED*dt, 0.2f, camera.zoom);
         }
         
         cameraVelocity = Vector2Scale(Vector2Normalize(cameraDir), CAMERA_MOVE_SPEED*dt);
