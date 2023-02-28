@@ -55,6 +55,11 @@ inline Rectangle Rec(float x, float y, float width, float height)
     return {x, y, width, height};
 }
 
+inline Rectangle Rec(v2 p, float width, float height)
+{
+    return {p.x, p.y, width, height};
+}
+
 inline int Clamp(int value, int min, int max)
 {
     if(value < min) return min;
