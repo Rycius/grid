@@ -92,12 +92,14 @@ int main()
     grid_tile tiles[100] = {};
     int32 tilesIndex = 0;
 
-    tex_atlas roadAtlas = {.texture = LoadTexture("../resources/roads.png"), .itemCount = 3};
+    tex_atlas roadAtlas = {.texture = LoadTexture("../resources/roads.png"), .itemCount = 5};
 
-    build_item buildItems[3] = {
+    build_item buildItems[5] = {
         {.atlas = &roadAtlas, .src = Rec(0, 0, 32, 32)},
         {.atlas = &roadAtlas, .src = Rec(32, 0, 32, 32)},
-        {.atlas = &roadAtlas, .src = Rec(64, 0, 32, 32)}
+        {.atlas = &roadAtlas, .src = Rec(64, 0, 32, 32)},
+        {.atlas = &roadAtlas, .src = Rec(0, 32, 32, 32)},
+        {.atlas = &roadAtlas, .src = Rec(32, 32, 32, 32)}
     };
 
     int32 buildItemID = 0;
