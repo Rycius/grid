@@ -15,6 +15,8 @@ enum
 };
 
 void GridShaderInit(Shader shader, v2 screen, float size, v2 offset, v2 mouse, float zoom, v3 color, float fallOff);
-void GridShaderUpdate(Shader shader, v2 offset, v2 mousePos, float zoom);
+void GridShaderUpdate(Shader shader, float size, v2 offset, v2 mousePos, float zoom, v3 color, float fallOff);
+void GridShaderUpdateSize(Shader shader, float size);
+
 
 #endif //GRID_H

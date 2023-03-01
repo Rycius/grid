@@ -1,14 +1,4 @@
 //TODO: store filled cellls in dictionary using cell x:y number as a key?
-
-#define MY_DEBUG 1
-
-
-#define STB_DS_IMPLEMENTATION
-#include "stb_ds.h"
-
-#include "ray_types.h"
-#include "grid.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,31 +10,35 @@ extern "C" {
 }
 #endif
 
+#define MY_DEBUG 1
+
+
+#define STB_DS_IMPLEMENTATION
+#include "stb_ds.h"
+
+#include "game.h"
+#include "grid.h"
+#include "builder.h"
+
 #define CAMERA_MOVE_SPEED 400.0f
 #define CAMERA_ZOOM_SPEED 10.0f
 
-#define TEXTURE_SIZE 32
 
-v2 ScreenToGridPos(v2 screenPos, float gridRes, Camera2D camera);
+Camera2D camera;
 
-struct tex_atlas
+Shader gridShader;
+float gridRes = 100.0f;
+v2 gridOffset = Vec2(0.0f, 0.0f);
+v3 gridColor;
+float gridFallOff;
+
+
+void UpdateGrid()
 {
-    Texture2D texture;
-    int32 itemCount;
-};
-
-struct build_item
-{
-    tex_atlas *atlas;
-    Rectangle src;
-    float rotation;
-};
-
-struct grid_tile
-{
-    Rectangle rec;
-    build_item item;
-};
+    gridOffset = GetWorldToScreen2D(ScreenToGridPos(Vec2(0.0f, 0.0f), gridRes, camera), camera);
+        
+    GridShaderUpdate(gridShader, gridRes, gridOffset, GetMousePosition(), camera.zoom, gridColor, gridFallOff);
+}
 
 int main() 
 {
@@ -55,7 +49,7 @@ int main()
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screen.width, screen.height, "raylib");
     
-    Camera2D camera = { 0 };
+    camera = { 0 };
     camera.offset = Vec2(screen.width/2.0f, screen.height/2.0f);
     camera.target = Vec2(0.0f, 0.0f);
     camera.rotation = 0.0f;
@@ -67,10 +61,7 @@ int main()
     float dt = 0.0f;
     
     
-    //--------------------------------------------------------------------------------------
-    
-    float gridRes = 100.0f; 
-    
+    //--------------------------------------------------------------------------------------    
     
     Image cellImg = GenImageColor(gridRes, gridRes, {136, 164, 124, 255});
     Texture2D cellTex = LoadTextureFromImage(cellImg);
@@ -79,29 +70,22 @@ int main()
     Texture2D gridTex = LoadTextureFromImage(gridImg);
     
     
-    //-------------------------------- SHADER SETUP --------------------------------
+    //-------------------------------- GRID SHADER SETUP --------------------------------
     
-    Shader gridShader = LoadShader(0, "../resources/grid.fs");
-    v2 gridValOffset = GetWorldToScreen2D(ScreenToGridPos(Vec2(0.0f, 0.0f), gridRes, camera), camera);
-    v3 gridValColor = Vec3(0.11f, 0.19f, 0.37f);
-    float gridValFallOff = 20.0f;
-    GridShaderInit(gridShader, Vec2(screen.width, screen.height), gridRes, gridValOffset, GetMousePosition(), camera.zoom, gridValColor, gridValFallOff);
+    gridShader = LoadShader(0, "../resources/grid.fs");
+    gridOffset = GetWorldToScreen2D(ScreenToGridPos(Vec2(0.0f, 0.0f), gridRes, camera), camera);
+    gridColor = Vec3(0.11f, 0.19f, 0.37f);
+    gridFallOff = 20.0f;
+    GridShaderInit(gridShader, Vec2(screen.width, screen.height), gridRes, gridOffset, GetMousePosition(), camera.zoom, gridColor, gridFallOff);
     //--------------------------------------------------------------------------------------
     
-    
+    LoadBuildAssets();
+
     grid_tile tiles[100] = {};
     int32 tilesIndex = 0;
 
-    tex_atlas roadAtlas = {.texture = LoadTexture("../resources/roads.png"), .itemCount = 5};
-
-    build_item buildItems[5] = {
-        {.atlas = &roadAtlas, .src = Rec(0, 0, 32, 32)},
-        {.atlas = &roadAtlas, .src = Rec(32, 0, 32, 32)},
-        {.atlas = &roadAtlas, .src = Rec(64, 0, 32, 32)},
-        {.atlas = &roadAtlas, .src = Rec(0, 32, 32, 32)},
-        {.atlas = &roadAtlas, .src = Rec(32, 32, 32, 32)}
-    };
-
+    build_item activeItem = GetBuildItem(0, 0);
+    int32 buildItemTypeID = 0;
     int32 buildItemID = 0;
     float buildItemRotation = 0.0f;
     
@@ -110,10 +94,13 @@ int main()
     {
         // Update
         dt = GetFrameTime();
+
+        if(IsKeyPressed(KEY_P))
+        {
+            gridRes = 25.0f;
+        }
         
-        gridValOffset = GetWorldToScreen2D(ScreenToGridPos(Vec2(0.0f, 0.0f), gridRes, camera), camera);
-        
-        GridShaderUpdate(gridShader, gridValOffset, GetMousePosition(), camera.zoom);
+        UpdateGrid();
         
         //------------------------------- CAMERA ---------------------------------------------------
         v2 cameraVelocity = {};
@@ -149,15 +136,21 @@ int main()
         camera.target = Vector2Add(camera.target, cameraVelocity);
         
         //----------------------------------- BUILDING ----------------------------------------
-                
+        
+        
+
         float mw = GetMouseWheelMove();
         if(!IsKeyDown(KEY_LEFT_CONTROL))
         {
             if(mw > 0.0f) ++buildItemID;
             else if(mw < 0.0f) --buildItemID;
+
+            if(buildItemID >= BuildItemCount(buildItemTypeID)) buildItemID = 0;
+            else if(buildItemID < 0) buildItemID = BuildItemCount(buildItemTypeID) -1;
+
+            activeItem = GetBuildItem(buildItemTypeID, buildItemID);
         }
 
- 
         if(IsMouseButtonPressed(2))
         {
             buildItemRotation += 90.0f;
@@ -166,16 +159,17 @@ int main()
 
         if(IsMouseButtonPressed(0))
         {
+            build_item item = GetBuildItem(buildItemTypeID, buildItemID);
+            item.rotation = buildItemRotation;
+            
+
             tiles[tilesIndex].rec = Rec(ScreenToGridPos(GetMousePosition(), gridRes, camera), gridRes, gridRes);
-            tiles[tilesIndex].rec.x += gridRes/2.0f;
-            tiles[tilesIndex].rec.y += gridRes/2.0f;
-            tiles[tilesIndex].item = buildItems[abs((buildItemID)%(int32)ArrayCount(buildItems))];
-            tiles[tilesIndex].item.rotation = buildItemRotation;
+            tiles[tilesIndex].rec.x += item.res/2.0f;
+            tiles[tilesIndex].rec.y += item.res/2.0f;
+            tiles[tilesIndex].item = item;
             tilesIndex++;
         }
 
-
-        
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
@@ -183,28 +177,28 @@ int main()
         ClearBackground(RAYWHITE);
         
         BeginMode2D(camera);
+        
+        for(int32 i = 0; i < tilesIndex; ++i)
+        {
+            DrawTexturePro(tiles[i].item.atlas->texture, 
+                            tiles[i].item.src, 
+                            tiles[i].rec, 
+                            Vec2(tiles[i].item.res/2.0f, tiles[i].item.res/2.0f), 
+                            tiles[i].item.rotation, 
+                            WHITE);
+        }
 
         Rectangle destRec = Rec(ScreenToGridPos(GetMousePosition(), gridRes, camera), gridRes, gridRes);
         destRec.x += gridRes/2.0f;
         destRec.y += gridRes/2.0f;
-
-        DrawTexturePro(buildItems[abs((buildItemID)%(int32)ArrayCount(buildItems))].atlas->texture, 
-                        buildItems[abs((buildItemID)%(int32)ArrayCount(buildItems))].src,
+        
+        
+        DrawTexturePro(activeItem.atlas->texture, 
+                        activeItem.src,
                         destRec,
                         Vec2(gridRes/2.0f, gridRes/2.0f),
                         buildItemRotation,
                         WHITE);
-        
-        for(int32 i = 0; i < tilesIndex; ++i)
-        {
-            //DrawTextureEx(roadTex, tiles[i], 0.0f, 1.0f, WHITE);
-            DrawTexturePro(tiles[i].item.atlas->texture, 
-                            tiles[i].item.src, 
-                            tiles[i].rec, 
-                            Vec2(gridRes/2.0f, gridRes/2.0f), 
-                            tiles[i].item.rotation, 
-                            WHITE);
-        }
         
         EndMode2D();
         
