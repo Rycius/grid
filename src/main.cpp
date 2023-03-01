@@ -100,14 +100,7 @@ int main()
             gridImg = GenImageColor(screen.width, screen.height, WHITE);
             gridTex = LoadTextureFromImage(gridImg);
         }
-
-        if(IsKeyPressed(KEY_P))
-        {
-            gridRes = 25.0f;
-        }
-        
-        UpdateGrid();
-        
+                
         //------------------------------- CAMERA ---------------------------------------------------
         v2 cameraVelocity = {};
         v2 cameraDir = {};
@@ -143,7 +136,16 @@ int main()
         
         //----------------------------------- BUILDING ----------------------------------------
         
-        
+        if(IsKeyPressed(KEY_ONE)) 
+        { 
+            buildItemTypeID = 0;
+            buildItemID = 0;
+        }
+        else if(IsKeyPressed(KEY_TWO))
+        {
+            buildItemTypeID = 1;
+            buildItemID = 0;
+        } 
 
         float mw = GetMouseWheelMove();
         if(!IsKeyDown(KEY_LEFT_CONTROL))
@@ -153,9 +155,11 @@ int main()
 
             if(buildItemID >= BuildItemCount(buildItemTypeID)) buildItemID = 0;
             else if(buildItemID < 0) buildItemID = BuildItemCount(buildItemTypeID) -1;
-
-            activeItem = GetBuildItem(buildItemTypeID, buildItemID);
         }
+
+        activeItem = GetBuildItem(buildItemTypeID, buildItemID);
+        gridRes = activeItem.res;
+
 
         if(IsMouseButtonPressed(2))
         {
@@ -175,6 +179,9 @@ int main()
             tiles[tilesIndex].item = item;
             tilesIndex++;
         }
+
+        UpdateGrid();
+
 
         // Draw
         //----------------------------------------------------------------------------------
