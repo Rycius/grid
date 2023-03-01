@@ -25,6 +25,7 @@ extern "C" {
 
 
 Camera2D camera;
+Rectangle screen;
 
 Shader gridShader;
 float gridRes = 100.0f;
@@ -37,14 +38,14 @@ void UpdateGrid()
 {
     gridOffset = GetWorldToScreen2D(ScreenToGridPos(Vec2(0.0f, 0.0f), gridRes, camera), camera);
         
-    GridShaderUpdate(gridShader, gridRes, gridOffset, GetMousePosition(), camera.zoom, gridColor, gridFallOff);
+    GridShaderUpdate(gridShader, Vec2(screen.width, screen.height), gridRes, gridOffset, GetMousePosition(), camera.zoom, gridColor, gridFallOff);
 }
 
 int main() 
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    Rectangle screen = Rec(0.0f, 0.0f, 800.0f, 450.0f);
+    screen = Rec(0.0f, 0.0f, 800.0f, 450.0f);
     
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(screen.width, screen.height, "raylib");
@@ -62,12 +63,10 @@ int main()
     
     
     //--------------------------------------------------------------------------------------    
-    
-    Image cellImg = GenImageColor(gridRes, gridRes, {136, 164, 124, 255});
-    Texture2D cellTex = LoadTextureFromImage(cellImg);
-    
+        
     Image gridImg = GenImageColor(screen.width, screen.height, WHITE);
     Texture2D gridTex = LoadTextureFromImage(gridImg);
+    UnloadImage(gridImg);
     
     
     //-------------------------------- GRID SHADER SETUP --------------------------------
@@ -94,6 +93,13 @@ int main()
     {
         // Update
         dt = GetFrameTime();
+
+        if(IsWindowResized())
+        {
+            screen = Rec(0.0f, 0.0f, (float)GetScreenWidth(), (float)GetScreenHeight());
+            gridImg = GenImageColor(screen.width, screen.height, WHITE);
+            gridTex = LoadTextureFromImage(gridImg);
+        }
 
         if(IsKeyPressed(KEY_P))
         {
@@ -196,7 +202,7 @@ int main()
         DrawTexturePro(activeItem.atlas->texture, 
                         activeItem.src,
                         destRec,
-                        Vec2(gridRes/2.0f, gridRes/2.0f),
+                        Vec2(activeItem.res/2.0f, activeItem.res/2.0f),
                         buildItemRotation,
                         WHITE);
         
