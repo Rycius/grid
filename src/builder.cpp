@@ -2,7 +2,7 @@
 
 #define BUILD_ASSETS_PATH "../resources/"
 
-build_item buildItems[2][6];
+build_item buildItems[2][6]; // BUG: bug - not all atlasses will have same amount of items
 tex_atlas atlasArr[2];
 
 void LoadBuildAssets()
