@@ -28,7 +28,7 @@ Camera2D camera;
 Rectangle screen;
 
 Shader gridShader;
-float gridRes = 100.0f;
+float gridRes = 64.00f;
 v2 gridOffset = Vec2(0.0f, 0.0f);
 v3 gridColor;
 float gridFallOff;
